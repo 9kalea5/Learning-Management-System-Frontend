@@ -18,5 +18,9 @@ export default async function login(email, password) {
     }
     catch (error){
         console.error("Login failed: ", error)
+        return {
+            data: null,
+            error: error.response.data?.detail || "Something Went Wrong"
+        }
     }
 }

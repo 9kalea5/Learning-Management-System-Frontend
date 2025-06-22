@@ -4,6 +4,15 @@ import jwtDecode from "jwt-decode"
 import Cookie from "js-cookie"
 import Swal from "sweetalert2"
 
+function isAccessTokenExpired(token) {
+  try {
+    const { exp } = jwtDecode(token);
+    return exp * 1000 < Date.now();
+  } catch (e) {
+    return true;
+  }
+}
+
 export default async function login(email, password){
     try {
         const {data, status} = await axios.post(`user/token/`, {
@@ -52,4 +61,3 @@ export default function logout(){
     useAuth.getState().setUser(null)
     alert("You have benn logged out")
 }
-

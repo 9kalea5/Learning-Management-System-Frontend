@@ -21,6 +21,18 @@ function setAuthUser(accessToken, refreshToken, setUser) {
   setUser(user)
 }
 
+async function getRefreshedToken(refreshToken) {
+  try {
+    const { data } = await axios.post("user/token/refresh/", {
+      refresh: refreshToken,
+    });
+    return data;
+  } catch (error) {
+    console.error("Token refresh failed:", error);
+    return null;
+  }
+}
+
 export default async function login(email, password){
     try {
         const {data, status} = await axios.post(`user/token/`, {

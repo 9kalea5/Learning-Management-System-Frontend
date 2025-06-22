@@ -9,8 +9,16 @@ function isAccessTokenExpired(token) {
     const { exp } = jwtDecode(token);
     return exp * 1000 < Date.now();
   } catch (e) {
-    return true;
+    return true
   }
+}
+
+function setAuthUser(accessToken, refreshToken, setUser) {
+  Cookie.set("access_token", accessToken);
+  Cookie.set("refresh_token", refreshToken);
+
+  const user = jwtDecode(accessToken);
+  setUser(user)
 }
 
 export default async function login(email, password){

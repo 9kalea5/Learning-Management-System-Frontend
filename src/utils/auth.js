@@ -49,4 +49,7 @@ export default async function register(full_name, email, password, password2){
 export default function logout(){
     Cookie.remove("access_token")
     Cookie.remove("refresh_token")
+    useAuth.getState().setUser(null)
+    alert("You have benn logged out")
 }
+

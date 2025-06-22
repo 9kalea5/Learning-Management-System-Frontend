@@ -81,3 +81,22 @@ export default function logout(){
     useAuth.getState().setUser(null)
     alert("You have benn logged out")
 }
+
+export async function initializeUser(setUser) {
+  const accessToken = Cookie.get("access_token");
+  const refreshToken = Cookie.get("refresh_token");
+
+  if (!accessToken || !refreshToken) {
+    Swal.fire("Tokens do not exist", "", "warning");
+    return;
+  }
+
+  if (isAccessTokenExpired(accessToken)) {
+    const response = await getRefreshedToken(refreshToken);
+    if (response) {
+      setAuthUser(response.access, response.refresh, setUser);
+    }
+  } else {
+    setAuthUser(accessToken, refreshToken, setUser);
+  }
+}

@@ -14,6 +14,7 @@ export default async function login(email, password) {
             setAuthUser(data.access, data.refresh)
             alert("Login Successfull")
         }
+        return {data, error:null}
     }
     catch (error){
         console.error("Login failed: ", error)

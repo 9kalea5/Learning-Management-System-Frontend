@@ -38,6 +38,10 @@ export default async function register(full_name, email, password, password2){
         return {data, error:null}
     }
     catch (error){
-
+        console.error("Registration failed: ", error)
+        return {
+            data: null,
+            error: error.response.data?.detail || "Something Went Wrong"
+        }
     }
 }

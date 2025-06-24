@@ -4,8 +4,6 @@ import { AuthProvider } from './store/auth';
 import { MainWrapper } from './components/MainWrapper';
 import { PrivateRoutes } from './components/PrivateRoutes';
 import RegisterPage from './pages/RegisterPage';
-import LoginPage from './pages/LoginPage';
-import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
@@ -13,23 +11,7 @@ function App() {
       <AuthProvider>
         <MainWrapper>
           <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route
-              path="/"
-              element={
-                <PrivateRoutes>
-                  <Navigate to="/dashboard" replace />
-                </PrivateRoutes>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoutes>
-                  <Dashboard />
-                </PrivateRoutes>
-              }
+            <Route path="/register" element={<RegisterPage />}
             />
           </Routes>
         </MainWrapper>

@@ -1,21 +1,22 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../store/auth";
-import { initializeUser } from "../utils/auth";
+import { setUser } from "../utils/auth";
 
-export default function MainWrapper({ children }) {
+const MainWrapper = ({ children }) => {
   const [loading, setLoading] = useState(true);
-  const { setUser } = useAuth();
 
   useEffect(() => {
     const handler = async () => {
       setLoading(true);
 
-      await initializeUser(setUser);
+      await setUser();
 
       setLoading(false);
     };
+
     handler();
-  }, [setUser]);
+  }, []);
 
   return <>{loading ? null : children}</>;
-}
+};
+
+export default MainWrapper;

@@ -1,86 +1,116 @@
-import {useAuth} from "../store/auth"
-import axios from "./axios"
-import jwtDecode from "jwt-decode"
-import Cookie from "js-cookie"
-import Swal from "sweetalert2"
+import { useAuthStore } from "../store/auth";
+import axios from "./axios";
+import jwt_decode from "jwt-decode";
+import Cookie from "js-cookie";
+import Swal from "sweetalert2";
 
-function isAccessTokenExpired(token) {
+export const isAccessTokenExpired = (access_token) => {
   try {
-    const { exp } = jwtDecode(token);
-    return exp * 1000 < Date.now();
-  } catch (e) {
-    return true
-  }
-}
-
-function setAuthUser(accessToken, refreshToken, setUser) {
-  Cookie.set("access_token", accessToken);
-  Cookie.set("refresh_token", refreshToken);
-
-  const user = jwtDecode(accessToken);
-  setUser(user)
-}
-
-async function getRefreshedToken(refreshToken) {
-  try {
-    const { data } = await axios.post("user/token/refresh/", {
-      refresh: refreshToken,
-    });
-    return data;
+      const decodedToken = jwt_decode(access_token);
+      return decodedToken.exp < Date.now() / 1000;
   } catch (error) {
-    console.error("Token refresh failed:", error);
-    return null;
+      console.error("Error decoding token:", error);
+      return true; // Consider token expired if decoding fails
   }
-}
+};
 
-export default async function login(email, password){
-    try {
-        const {data, status} = await axios.post(`user/token/`, {
-            email,
-            password,
-        })
-        if (status===200){
-            setAuthUser(data.access, data.refresh)
-            alert("Login Successfull")
-        }
-        return {data, error:null}
-    }
-    catch (error){
-        console.error("Login failed: ", error)
-        return {
-            data: null,
-            error: error.response.data?.detail || "Something Went Wrong"
-        }
-    }
-}
 
-export default async function register(full_name, email, password, password2){
-    try {
-        const {data} = await axios.post(`user/register`, {
-            full_name,
-            email,
-            password,
-            password2,
-        })
-        await login(email, password)
-        alert("Registration Successfull")
-        return {data, error:null}
-    }
-    catch (error){
-        console.error("Registration failed: ", error)
-        return {
-            data: null,
-            error: error.response.data?.detail || "Something Went Wrong"
-        }
-    }
-}
+export const setUser = async () => {
+  const access_token = Cookie.get("access_token");
+  const refresh_token = Cookie.get("refresh_token");
 
-export default function logout(){
-    Cookie.remove("access_token")
-    Cookie.remove("refresh_token")
-    useAuth.getState().setUser(null)
-    alert("You have benn logged out")
-}
+  if (!access_token || !refresh_token) {
+      console.log("Tokens do not exist");
+      return;
+  }
+
+  if (isAccessTokenExpired(access_token)) {
+      const response = await getRefreshToken(refresh_token); // Properly awaited
+      setAuthUser(response.data.access, response.data.refresh); // Corrected access of token data
+  } else {
+      setAuthUser(access_token, refresh_token);
+  }
+};
+
+export const setAuthUser = (access_token, refresh_token) => {
+  if (access_token && refresh_token) {
+      Cookie.set("access_token", access_token, {
+          expires: 1,
+          secure: true,
+      });
+
+      Cookie.set("refresh_token", refresh_token, {
+          expires: 7,
+          secure: true,
+      });
+
+      const user = access_token ? jwt_decode(access_token) : null; // Ensure valid token is passed
+      if (user) {
+          useAuthStore.getState().setUser(user);
+      }
+  } else {
+      console.error("Invalid tokens, could not set user.");
+  }
+  useAuthStore.getState().setLoading(false);
+};
+
+export const getRefreshToken = async () => {
+  try {
+      const refresh_token = Cookie.get("refresh_token");
+      const response = await axios.post(`user/token/refresh/`, {
+          refresh: refresh_token,
+      });
+      return response;
+  } catch (error) {
+      console.error("Failed to refresh token:", error);
+      logout(); // Log the user out if refresh fails
+      throw error;
+  }
+};
+
+export const login = async (email, password) => {
+  try {
+      const { data, status } = await axios.post(`user/token/`, {
+          email,
+          password,
+      });
+
+      if (status === 200) {
+          setAuthUser(data.access, data.refresh);
+      }
+
+      return { data, error: null };
+  } catch (error) {
+      const errorMessage = error.response?.data?.detail || "Something went wrong";
+      console.error("Login error:", errorMessage);
+      return { data: null, error: errorMessage };
+  }
+};
+
+export const register = async (full_name, email, password, password2) => {
+  try {
+      const { data } = await axios.post(`user/register/`, {
+          full_name,
+          email,
+          password,
+          password2,
+      });
+
+      await login(email, password);
+      return { data, error: null };
+  } catch (error) {
+      return {
+          data: null,
+          error: `${error.response.data.full_name} - ${error.response.data.email}` || "Something went wrong",
+      };
+  }
+};
+
+export const logout = () => {
+    Cookie.remove("access_token");
+    Cookie.remove("refresh_token");
+    useAuthStore.getState().setUser(null);
+};
 
 export async function initializeUser(setUser) {
   const accessToken = Cookie.get("access_token");

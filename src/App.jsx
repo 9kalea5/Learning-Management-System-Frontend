@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './store/auth';
+import { useAuthStore } from './store/auth';
 import MainWrapper from './components/MainWrapper';
 import PrivateRoutes from './components/PrivateRoutes';
 import RegisterPage from './pages/RegisterPage';
@@ -9,7 +9,6 @@ import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
-    <AuthProvider>
       <MainWrapper>
         <Routes>
           <Route path="/register" element={<RegisterPage />} />
@@ -24,7 +23,6 @@ function App() {
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </MainWrapper>
-    </AuthProvider>
   );
 }
 
